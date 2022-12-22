@@ -1,22 +1,22 @@
 -- insert values into the department table
-INSERT INTO department (id, name)
+INSERT INTO department (name)
 VALUES  
-(1, "Marketing"),
-(2, "Accounting"),
-(3, "Customer Service"),
-(4, "Tech Support"),
-(5, "HR"),
-(6, "Management");
+("Marketing"),
+("Accounting"),
+("Customer Service"),
+("Tech Support"),
+("HR"),
+("Management");
 
 -- insert values into the role table
-INSERT INTO role (id, title, salary, department_id)
+INSERT INTO role (title, salary, department_id)
 VALUES
-(1, "Marketing Employee", 75000, 1),
-(2, "Accounting Employee", 90000, 2),
-(3, "Customer Service Employee", 60000, 3),
-(4, "Tech Support Employee", 82000, 4),
-(5, "HR Employee", 71000, 5),
-(6, "Management Employee", 97000, 6);
+("Marketing Employee", 75000, 1),
+("Accounting Employee", 90000, 2),
+("Customer Service Employee", 60000, 3),
+("Tech Support Employee", 82000, 4),
+("HR Employee", 71000, 5),
+("Management Employee", 97000, 6);
 
 -- insert values into employee table
 INSERT INTO employee (first_name, last_name, role_id, manager_id)
