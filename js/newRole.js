@@ -1,7 +1,7 @@
-function Role (name, salary, department) {
-    this.name = name;
+function Role (title, salary, department_id) {
+    this.title = title;
     this.salary = salary;
-    this.department = department;
+    this.department_id = department_id;
 }
 
 module.exports = Role

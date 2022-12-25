@@ -2,6 +2,7 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
 require('console.table');
+//const { test } = require('./querys')
 
 // import class files
 const NewEmployee = require('./newEmployee');
@@ -70,7 +71,14 @@ const addDepartmentQuestions = () => {
             {
                 type: "input",
                 name: "departmentName",
-                message: "What is the name of the new department?"
+                message: "What is the name of the new department?",
+                validate: DepartmentNameInput => {
+                    if(DepartmentNameInput) {
+                        return true
+                    } else {
+                        console.log("Please input a department name.")
+                    }
+                }
             }
         ])
         .then(function(department) {
@@ -94,78 +102,118 @@ const addRoleQuestions = () => {
     return inquirer.prompt([
         {
             type: "input",
-            name: "roleName",
-            message: "What is the name of the new role?"
+            name: "roleTitle",
+            message: "What is the name of the new role?",
+            validate: roleNameInput => {
+                if(roleNameInput) {
+                    return true
+                } else {
+                    console.log("Please input a name for this new role.")
+                }
+            }
         },
         {
             type: "input",
             name: "roleSalary",
-            message: "What is the salary for this position?"
-        },
-        {
-            type: "list",
-            name: "roleDepartment",
-            message: "What department will this role be in?",
-            choices: 
-        }
-    ])
-    .then(function(roleData) {
-        const {roleName, roleSalary, roleDepartment} = roleData;
-        const newestRole = new NewRole (roleName, roleSalary, roleDepartment)
-
-        db.query('INSERT INTO role (title, salary, department_id) VALUES (?)', roleName, roleSalary, roleDepartment,(err, result) => {
-            if(err) {
-                console.log(err);
-                return startApp();
-            } else {
-                console.log('New Role Added!');
-                return startApp();
+            message: "What is the salary for this position?",
+            validate: roleSalaryInput => {
+                if(roleSalaryInput) {
+                    return true;
+                } else {
+                    console.log("Please enter a salary for this new role.")
+                }
             }
-        }) 
-    })
+        },
+    ]).then(function(roleInput) {
+        let roleTitle = roleInput.roleTitle
+        let roleSalary = roleInput.roleSalary
+        db.promise().query("SELECT name FROM department")
+            .then(([row, fields]) => {
+                return inquirer.prompt ({
+                    type: "list",
+                    name: "roleDepartment",
+                    message: "What department will this role be in?",
+                    choices: row.filter(r => !!r.name).map(r => r.name), // filter to get rid of the nulls and map
+                    validate: roleDepartmentInput => {
+                        if(roleDepartmentInput) {
+                            return true;
+                        } else {
+                            console.log("Please input what department this new role belongs to.")
+                        }
+                    }
+                })
+              }).then(function(roleDep) {
+                let roleDepName = roleDep.roleDepartment
+                const bestRole = new NewRole (roleTitle, roleSalary, roleDepName)
+                    db.query("INSERT INTO role (title, salary, department_id) VALUES (?)", , (err, res) => {
+                        if(err) {
+                            console.log(err)
+                        } else {
+                            console.log("New Role Created!")
+                        }
+                    })
+              })
+    })     
 }
+    // TODO: GET THIS DATA TO BE ABLE TO PUSH TO ROLE TABLE
 
-// add employee questions
-const addEmployeeQuestions = () => {
-    return inquirer.prompt([
-        {
-            type: "input",
-            name: "employeeFirstName",
-            message: "What is the first name of the employee?"
-        },
-        {
-            type: "input",
-            name: "employeeLastName",
-            message: "What is the the last name of the employee?"
-        },
-        {
-            type: "list",
-            name: "employeeRole",
-            message: "What is the new employees role?",
-            choices: 
-        },
-        {
-            type: "list",
-            name: "employeeManager",
-            message: "Does this new employee have a manager?",
-            choices: 
-        }
-    ])
-    .then(function(employeeData) {
-        const {employeeFirstName, employeeLastName, EmployeeRoll, EmployeeManager} = employeeData
-        const newestEmployee = new NewEmployee (employeeFirstName, employeeLastName, EmployeeRoll, EmployeeManager)
 
-        db.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?)', employeeFirstName, employeeLastName, EmployeeRoll, EmployeeManager, (err, result) => {
-            if(err) {
-                console.log(err);
-                return startApp();
-            } else {
-                console.log('New Employee Added!');
-                return startApp();
-            }
-        })        
-    })
-}
+//add employee questions
+// const addEmployeeQuestions = () => {
+    
+//     return inquirer.prompt([
+//         {
+//             type: "input",
+//             name: "employeeFirstName",
+//             message: "What is the first name of the employee?",
+//             validate: employeeFirstNameInput => {
+//                 if(employeeFirstNameInput) {
+//                     return true;
+//                 } else {
+//                     console.log("Please input the first name of the employee.")
+//                 }
+//             }
+//         },
+//         {
+//             type: "input",
+//             name: "employeeLastName",
+//             message: "What is the the last name of the employee?",
+//             validate: employeeLastNameInput => {
+//                 if(employeeLastNameInput) {
+//                     return true;
+//                 } else {
+//                     console.log("Please input the last name of the employee.")
+//                 }
+//             }
+//         },
+//         {
+//             type: "list",
+//             name: "employeeRole",
+//             message: "What is the new employees role?",
+//             choices: 
+//         },
+//         {
+//             type: "list",
+//             name: "employeeManager",
+//             message: "Does this new employee have a manager?",
+//             choices: 
+//         }
+//     ])
+//     .then(function(employeeData) {
+//         const {employeeFirstName, employeeLastName, EmployeeRoll, EmployeeManager} = employeeData
+//         const newestEmployee = new NewEmployee (employeeFirstName, employeeLastName, EmployeeRoll, EmployeeManager)
+
+//         db.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?)', employeeFirstName, employeeLastName, EmployeeRoll, EmployeeManager, (err, result) => {
+//             if(err) {
+//                 console.log(err);
+//                 return startApp();
+//             } else {
+//                 console.log('New Employee Added!');
+//                 return startApp();
+//             }
+//         })        
+//     })
+// }
 
 
 
@@ -174,3 +222,5 @@ const addEmployeeQuestions = () => {
 
 // start application
 startApp()
+
+module.exports = db

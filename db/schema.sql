@@ -23,7 +23,6 @@ CREATE TABLE role(
     REFERENCES department(id)
     ON DELETE SET NULL
 );
-
 -- create employee table
 CREATE TABLE employee(
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -33,5 +32,7 @@ CREATE TABLE employee(
     FOREIGN KEY(role_id)
     REFERENCES role(id)
     ON DELETE SET NULL,
-    manager_id INT
+    manager_id INT,
+    FOREIGN KEY(id)
+    REFERENCES employee(id)
 );
