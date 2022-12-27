@@ -29,7 +29,7 @@ const startApp = () => {
             type: "list",
             name: "first",
             message: "What would you like to do?",
-            choices: ["View All Employees", "Add Employee", "View All Roles", "Add Role", "View All Departments", "Add Department", "Quit"]
+            choices: ["View All Employees", "Update Employee Role","Add Employee", "View All Roles", "Add Role", "View All Departments", "Add Department", "Quit"]
            }
         ])
         .then(function(data) {
@@ -52,13 +52,22 @@ const startApp = () => {
                     return startApp();
                 });
             } else if(data.first == "Add Department") {
+                // run function to add department
                 addDepartmentQuestions();
             } else if(data.first == "Add Employee") {
+                // run function to add employee
                 addEmployeeQuestions();
             } else if(data.first == "Add Role") {
+                // run function to add roll
                 addRoleQuestions();
-            } else if(data.first == "Quit") {
-                process.exit(console.log("Goodbye!"))
+            } else if(data.first == "Update Employee Role") {
+                //updateEmployeeRole();
+                console.log("Currently Unavailable.")
+                return startApp()
+            }
+             else if(data.first == "Quit") {
+                // if user selects 'quit' the app exits
+                process.exit(console.log("Goodbye!"));
             }
         })
 }
@@ -82,6 +91,7 @@ const addDepartmentQuestions = () => {
         ])
         .then(function(department) {
             const bestDepartment = new NewDepartment (department.departmentName)
+            // deconstruct newDepartment object to easily insert into query
             const name = bestDepartment.name
             // query new department name into table
             db.query('INSERT INTO department (name) VALUES (?)', name, (err, result) => {
@@ -123,10 +133,11 @@ const addRoleQuestions = () => {
                 }
             }
         },
-    ]).then(async function(roleInput) {
+    ]).then(function(roleInput) {
+        // apply previous question data to variables so it can be used in a later promise
         let title = roleInput.roleTitle
         let salary = roleInput.roleSalary
-        await db.promise().query("SELECT id AS name FROM department")
+        db.promise().query("SELECT id AS name FROM department")
             .then(([row, fields]) => {
                 return inquirer.prompt ({
                     type: "list",
@@ -249,7 +260,22 @@ const addEmployeeQuestions = () => {
                         })
             })
     }
-        
+
+// update employee role questions
+// const updateEmployeeRole = () => {
+//     db.promise().query("SELECT first_name FROM employee")
+//         .then(([rows, fields]) => {
+//             return inquirer.prompt({
+//                 type: "list",
+//                 name: "empNames",
+//                 message: "Which employee would you like to update?",
+//                 choices: rows.filter(d => !!d.first_name ).map(d => d.first_name)
+//         })}).then(function(updatedRoleNameInput) {
+//                 let nameOfUpdate = updatedRoleNameInput.empNames
+//          })
+// }
+
+
 
 // start application
 startApp()
