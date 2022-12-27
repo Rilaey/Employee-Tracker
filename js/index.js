@@ -2,7 +2,6 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
 require('console.table');
-//const { test } = require('./querys')
 
 // import class files
 const NewEmployee = require('./newEmployee');
@@ -30,7 +29,7 @@ const startApp = () => {
             type: "list",
             name: "first",
             message: "What would you like to do?",
-            choices: ["View All Employees", "Add Employee", "Update Employee Roll", "View All Roles", "Add Role", "View All Departments", "Add Department", "Quit"]
+            choices: ["View All Employees", "Add Employee", "View All Roles", "Add Role", "View All Departments", "Add Department", "Quit"]
            }
         ])
         .then(function(data) {
@@ -124,10 +123,10 @@ const addRoleQuestions = () => {
                 }
             }
         },
-    ]).then(function(roleInput) {
-        let roleTitle = roleInput.roleTitle
-        let roleSalary = roleInput.roleSalary
-        db.promise().query("SELECT name FROM department")
+    ]).then(async function(roleInput) {
+        let title = roleInput.roleTitle
+        let salary = roleInput.roleSalary
+        await db.promise().query("SELECT id AS name FROM department")
             .then(([row, fields]) => {
                 return inquirer.prompt ({
                     type: "list",
@@ -143,82 +142,114 @@ const addRoleQuestions = () => {
                     }
                 })
               }).then(function(roleDep) {
-                let roleDepName = roleDep.roleDepartment
-                const bestRole = new NewRole (roleTitle, roleSalary, roleDepName)
-                    db.query("INSERT INTO role (title, salary, department_id) VALUES (?)", , (err, res) => {
+                let department_id = roleDep.roleDepartment
+                console.log(title)
+                console.log(salary)
+                console.log(department_id)
+                let values = [
+                    [title, salary, department_id]
+                ]
+                //const bestRole = new NewRole (title, salary, department_id)
+                    db.query("INSERT INTO role (title, salary, department_id) VALUES (?)", values, (err, res) => {
                         if(err) {
                             console.log(err)
+                            return startApp()
                         } else {
                             console.log("New Role Created!")
+                            return startApp()
                         }
                     })
               })
     })     
 }
-    // TODO: GET THIS DATA TO BE ABLE TO PUSH TO ROLE TABLE
-
 
 //add employee questions
-// const addEmployeeQuestions = () => {
-    
-//     return inquirer.prompt([
-//         {
-//             type: "input",
-//             name: "employeeFirstName",
-//             message: "What is the first name of the employee?",
-//             validate: employeeFirstNameInput => {
-//                 if(employeeFirstNameInput) {
-//                     return true;
-//                 } else {
-//                     console.log("Please input the first name of the employee.")
-//                 }
-//             }
-//         },
-//         {
-//             type: "input",
-//             name: "employeeLastName",
-//             message: "What is the the last name of the employee?",
-//             validate: employeeLastNameInput => {
-//                 if(employeeLastNameInput) {
-//                     return true;
-//                 } else {
-//                     console.log("Please input the last name of the employee.")
-//                 }
-//             }
-//         },
-//         {
-//             type: "list",
-//             name: "employeeRole",
-//             message: "What is the new employees role?",
-//             choices: 
-//         },
-//         {
-//             type: "list",
-//             name: "employeeManager",
-//             message: "Does this new employee have a manager?",
-//             choices: 
-//         }
-//     ])
-//     .then(function(employeeData) {
-//         const {employeeFirstName, employeeLastName, EmployeeRoll, EmployeeManager} = employeeData
-//         const newestEmployee = new NewEmployee (employeeFirstName, employeeLastName, EmployeeRoll, EmployeeManager)
-
-//         db.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?)', employeeFirstName, employeeLastName, EmployeeRoll, EmployeeManager, (err, result) => {
-//             if(err) {
-//                 console.log(err);
-//                 return startApp();
-//             } else {
-//                 console.log('New Employee Added!');
-//                 return startApp();
-//             }
-//         })        
-//     })
-// }
-
-
-
-// addRoleQuestions()
-
+const addEmployeeQuestions = () => {
+    return inquirer.prompt([
+        {
+            type: "input",
+            name: "first_name",
+            message: "What is the employees first name?",
+            validate: firstNameInput => {
+                if(firstNameInput) {
+                    return true
+                } else {
+                    console.log("Please enter a first name for the employee.")
+                }
+            }
+        },
+        {
+            type: "input",
+            name: "last_name",
+            message: "What is the last name of the employee?",
+            validate: lastNameInput => {
+                if(lastNameInput) {
+                    return true
+                } else {
+                    console.log("Please input a last name for the employee.")
+                }
+            }
+        },
+    ])      .then(function(empNamesInput) {
+                let first_name = empNamesInput.first_name
+                let last_name = empNamesInput.last_name
+                db.promise().query("SELECT role_id AS title FROM employee")
+                        .then(([row, fields])=> {
+                            //console.log(row)
+                            return inquirer.prompt({
+                                type: "list", 
+                                name: "roleId",
+                                message: "What is the role of the new employee?",
+                                choices: row.filter(b => !!b.title).map(b => b.title),
+                                validate: empRoleChoice => {
+                                    if(empRoleChoice) {
+                                        return true
+                                    } else {
+                                        console.log("Please select a role for the new employee.")
+                                    }
+                                }
+                            })
+                        }).then(function(empRoleInput) {
+                            let role_id = empRoleInput.roleId
+                            db.promise().query('SELECT manager_id FROM employee')
+                                .then(([row, fields]) => {
+                                    return inquirer.prompt({
+                                        type: "list",
+                                        name: "empManager",
+                                        message: "Who manages this employee?",
+                                        choices: row.filter(c => !!c.manager_id).map(c => c.manager_id),
+                                        validate: empManagerInput => {
+                                            if(empManagerInput) {
+                                                return true
+                                            } else {
+                                                console.log("Please select a manager for new employee.")
+                                            }
+                                        }
+                                    })
+                                }).then(function(empManagerInputs) {
+                                    let manager_id = empManagerInputs.empManager
+                                    //console.log(newEmpManager)
+                                    let empValues = [
+                                        [first_name,
+                                        last_name,
+                                        manager_id,
+                                        role_id,]
+                                    ]
+                                    console.log(empValues)
+                                    db.query("INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?)", empValues, (err, res) => {
+                                        if(err) {
+                                            console.log(err)
+                                            return startApp()
+                                        } else {
+                                            console.log("New employee created!")
+                                            return startApp()
+                                        }
+                                    })
+                                })
+                        })
+            })
+    }
+        
 
 // start application
 startApp()
