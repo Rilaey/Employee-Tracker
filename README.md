@@ -19,6 +19,8 @@
 
   ## Usage
   - After you have the required packages and node installed, start the application by navagating to the js folder in the CLI and runing the command "node index".
+  - [mod-12-walk-through.webm](https://user-images.githubusercontent.com/94302477/209742285-79e3c280-3640-4eb0-9c9d-5c12d0d3bc42.webm)
+
 
   ## License
   - license : MIT ![License MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
